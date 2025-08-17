@@ -7,13 +7,10 @@ repositories {
 }
 
 dependencies {
-    constraints {
-        implementation("org.apache.commons:commons-text:1.13.0")
-    }
+    val catalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
-    testImplementation("org.junit.jupiter:junit-jupiter:5.12.1")
-
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation(catalog.findLibrary("junit-jupiter").get())
+    testRuntimeOnly(catalog.findLibrary("junit-platform-launcher").get())
 }
 
 java {
