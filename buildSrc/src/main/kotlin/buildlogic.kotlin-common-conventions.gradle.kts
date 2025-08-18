@@ -1,3 +1,5 @@
+import org.gradle.accessors.dm.LibrariesForLibs
+
 plugins {
     kotlin("jvm")
 }
@@ -6,11 +8,11 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    val catalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
+val libs = the<LibrariesForLibs>()
 
-    testImplementation(catalog.findLibrary("junit-jupiter").get())
-    testRuntimeOnly(catalog.findLibrary("junit-platform-launcher").get())
+dependencies {
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 java {
