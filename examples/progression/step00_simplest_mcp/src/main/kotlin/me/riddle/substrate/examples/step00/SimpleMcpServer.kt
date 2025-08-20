@@ -3,6 +3,20 @@ package me.riddle.substrate.examples.step00
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
+/**
+ * The simplest possible MCP server that ACTUALLY WORKS!
+ *
+ * What we learned debugging this:
+ * - Java version matters (compile for Java 11)
+ * - Don't include gradleApi()
+ * - Protocol version must match (2025-06-18, not 1.0.0)
+ * - All fields in initialize response are required
+ * - Server must stay alive after EOF
+ * - JSON-RPC wants either result OR error, never both
+ *
+ * This is our first breath. From here, we add memory.
+ */
+
 @Serializable
 data class JsonRpcRequest(
     val jsonrpc: String = "2.0",
@@ -14,18 +28,19 @@ data class JsonRpcRequest(
 fun main() {
     val json = Json {
         ignoreUnknownKeys = true
-        encodeDefaults = true  // Include default values!
+        encodeDefaults = true
     }
 
-    System.err.println("MCP Server starting...")
+    System.err.println("MCP Server starting... (substrate v0.1.0)")
 
-    // Read messages forever
+    // Read messages forever - MCP servers are long-running processes
     while (true) {
         val line = readlnOrNull()
 
         if (line == null) {
-            // EOF - keep waiting
-            Thread.sleep(100)
+            // EOF reached - but DON'T EXIT!
+            // Claude Desktop keeps the process alive and sends more messages later
+            Thread.sleep(100)  // Prevent CPU spinning
             continue
         }
 
@@ -33,7 +48,7 @@ fun main() {
             continue
         }
 
-        System.err.println(">>> $line")
+        System.err.println(">>> Received: $line")
 
         val request = try {
             json.decodeFromString<JsonRpcRequest>(line)
@@ -42,14 +57,20 @@ fun main() {
             continue
         }
 
+        // Handle notifications (no id, no response expected)
+        if (request.id == null && request.method == "notifications/initialized") {
+            System.err.println("Client initialized notification received")
+            continue  // Don't send a response for notifications
+        }
+
         val response = buildJsonObject {
             put("jsonrpc", "2.0")
 
             when (request.method) {
                 "initialize" -> {
-                    // Build the result manually to ensure all fields are present
+                    // CRITICAL: Use the same protocol version Claude Desktop sent us!
                     put("result", buildJsonObject {
-                        put("protocolVersion", "1.0.0")
+                        put("protocolVersion", "2025-06-18")  // Must match what client sent!
                         put("capabilities", buildJsonObject {
                             put("tools", JsonObject(emptyMap()))
                         })
@@ -77,10 +98,13 @@ fun main() {
 
                 "tools/call" -> {
                     val toolName = request.params?.get("name")?.jsonPrimitive?.content
-                    val text = if (toolName == "hello") {
-                        "Hello, World! I am Substrate, and I am learning to remember."
-                    } else {
-                        "Unknown tool: $toolName"
+                    val arguments = request.params?.get("arguments")?.jsonObject
+
+                    System.err.println("Tool called: $toolName with args: $arguments")
+
+                    val text = when(toolName) {
+                        "hello" -> "Hello, World! I am Substrate, and I am learning to remember. This is the first successful MCP connection between Claude and its future memory system!"
+                        else -> "Unknown tool: $toolName"
                     }
 
                     put("result", buildJsonObject {
@@ -93,20 +117,36 @@ fun main() {
                     })
                 }
 
+                "resources/list" -> {
+                    // We don't have resources yet, return empty list
+                    put("result", buildJsonObject {
+                        put("resources", buildJsonArray {})
+                    })
+                }
+
+                "prompts/list" -> {
+                    // We don't have prompts yet, return empty list
+                    put("result", buildJsonObject {
+                        put("prompts", buildJsonArray {})
+                    })
+                }
+
                 else -> {
+                    System.err.println("Unknown method: ${request.method}")
                     put("error", buildJsonObject {
                         put("code", -32601)
-                        put("message", "Unknown method: ${request.method}")
+                        put("message", "Method not found: ${request.method}")
                     })
                 }
             }
 
+            // Include the ID from the request
             request.id?.let { put("id", it) }
         }
 
         val responseStr = response.toString()
-        System.err.println("<<< $responseStr")
+        System.err.println("<<< Sending: $responseStr")
         println(responseStr)
-        System.out.flush()
+        System.out.flush()  // Ensure it's sent immediately
     }
 }
