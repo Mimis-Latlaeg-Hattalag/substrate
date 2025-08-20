@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     kotlin("jvm")
     kotlin("plugin.serialization")
@@ -5,14 +7,25 @@ plugins {
 }
 
 dependencies {
-    implementation(gradleApi())
     implementation(platform(kotlin("bom")))
     implementation(platform(substrate.serialization.bom))
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json")
 }
 
-
 application {
-    mainClass.set("me.riddle.substrate.examples.step01.SimpleMcpServerKt")
+    mainClass.set("me.riddle.substrate.examples.step00.SimpleMcpServerKt")
+}
+
+
+// Claude us packaged with system Java 15.
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_11)
+    }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
 }

@@ -1,4 +1,4 @@
-package me.riddle.substrate.examples.step01
+package me.riddle.substrate.examples.step00
 
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*

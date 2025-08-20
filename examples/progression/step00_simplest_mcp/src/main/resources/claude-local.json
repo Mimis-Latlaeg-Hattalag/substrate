@@ -1,0 +1,9 @@
+{
+  "globalShortcut": "Alt+Ctrl+Cmd+C",
+  "mcpServers": {
+    "substrate-hello": {
+      "command": "yer-dist-jar-bootstrap",
+      "args": []
+    }
+  }
+}
