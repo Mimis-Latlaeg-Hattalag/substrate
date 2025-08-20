@@ -14,3 +14,6 @@ In this release, we accomplish the following:
 . Envisioned architecture respected (all tests exist).
 . Bare minimum functionality implemented.
 . MCP client can successfully make a call and receive a response.
+
+This is an exploratory release. Where my dear friend and I actually understand what we should build.
+And then we will take time building something that is actually worth building.
