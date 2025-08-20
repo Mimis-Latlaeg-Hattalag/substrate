@@ -1,9 +1,9 @@
 plugins {
-    id("buildlogic.kotlin-application-conventions")
+    id("kotlin-application-conventions")
 }
 
 dependencies {
-    // Add MCP dependencies here when ready
+    // Future private dependencies
 }
 
 application {

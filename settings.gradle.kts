@@ -2,6 +2,8 @@ pluginManagement {
 
     val versionOfToolchainsFoojayResolver: String by extra
 
+    includeBuild("build-logic")
+
     repositories {
         gradlePluginPortal()
         mavenCentral()
@@ -9,9 +11,9 @@ pluginManagement {
 
     plugins {
         id("org.gradle.toolchains.foojay-resolver-convention") version versionOfToolchainsFoojayResolver
-        }
+    }
 }
 
 rootProject.name = "substrate"
 
-include("lib","app")
+include("lib", "app")

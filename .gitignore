@@ -51,21 +51,6 @@ Temporary Items
 .apdisk
 
 
-#### Manifests template
-
-### Gradle template
-.gradle
-**/build/
-!src/**/build/
-# Ignore Gradle GUI config
-gradle-app.setting
-# Avoid ignoring Gradle wrapper
-!gradle-wrapper.jar
-!gradle-wrapper.properties
-# Cache of project
-.gradletasknamecache
-
-
 #### Languages template
 
 ### Java template
@@ -206,3 +191,17 @@ fabric.properties
 # Ignore redis binary dump (dump.rdb) files
 *.rdb
 
+
+#### Manifests template
+
+### Gradle template
+.gradle
+**/build/
+!src/**/build/
+# Ignore Gradle GUI config
+gradle-app.setting
+# Avoid ignoring Gradle wrapper
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+# Cache of project
+.gradletasknamecache

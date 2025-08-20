@@ -1,21 +1,25 @@
 [versions]
-kotlin = "2.2.0"
-kotlinx-serialization = "1.7.1"
+kotlin = "2.2.10"
+kotlinx-serialization = "2.2.10"
 kotlinx-coroutines = "1.8.1"
 exposed = "0.54.0"
 sqlite-jdbc = "3.46.1.0"
-junit = "5.11.0"
+junit = "5.13.4"
 mcp-sdk = "0.1.0"
 
 [libraries]
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+
 exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
 exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
 sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite-jdbc" }
-junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+
 mcp-sdk = { module = "org.jetbrains.kotlinx:mcp-sdk", version.ref = "mcp-sdk" }
 
 [plugins]
