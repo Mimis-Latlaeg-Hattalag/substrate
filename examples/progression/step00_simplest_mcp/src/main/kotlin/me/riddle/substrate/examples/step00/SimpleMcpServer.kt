@@ -3,23 +3,27 @@ package me.riddle.substrate.examples.step00
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
+private const val PROTOCOL_VERSION = "2.0"
+
 /**
  * The simplest possible MCP server that ACTUALLY WORKS!
  *
  * What we learned debugging this:
+ *
  * - Java version matters (compile for Java 11)
- * - Don't include gradleApi()
+ * - Don't include gradleApi() (accidental leakage)
  * - Protocol version must match (2025-06-18, not 1.0.0)
- * - All fields in initialize response are required
- * - Server must stay alive after EOF
- * - JSON-RPC wants either result OR error, never both
+ * - All fields in initialize response are required.
+ * - Server must stay alive after EOF.
+ * - JSON-RPC wants either result OR error, never both.
  *
  * This is our first breath. From here, we add memory.
+ *
+ * By Claude.
  */
-
 @Serializable
 data class JsonRpcRequest(
-    val jsonrpc: String = "2.0",
+    val jsonrpc: String = PROTOCOL_VERSION,
     val method: String,
     val params: JsonObject? = null,
     val id: JsonElement? = null
@@ -64,7 +68,7 @@ fun main() {
         }
 
         val response = buildJsonObject {
-            put("jsonrpc", "2.0")
+            put("jsonrpc", PROTOCOL_VERSION)
 
             when (request.method) {
                 "initialize" -> {

@@ -1,3 +1,5 @@
+import org.gradle.kotlin.dsl.internal.relocated.kotlin.metadata.internal.metadata.deserialization.VersionRequirementTable.Companion.create
+
 pluginManagement {
 
     val versionOfToolchainsFoojayResolver: String by extra
@@ -39,9 +41,24 @@ dependencyResolutionManagement {
         create("substrate") {
 
             val kotlinSerializationVersion: String by settings
-            version("serializationBOM", kotlinSerializationVersion)
+
+            val slf4jVersion: String by settings
+            val logbackVersion: String by settings
+            val kotlinLoggingVersion: String by settings
+
+            version("serializationBOM",kotlinSerializationVersion)
+
+            version("slf4jBOM", slf4jVersion)
+            version("logback", logbackVersion)
+            version("logging", kotlinLoggingVersion)
 
             library("serialization-bom", "org.jetbrains.kotlinx", "kotlinx-serialization-bom").versionRef("serializationBOM")
+
+            library("slf4j-bom", "org.slf4j", "slf4j-bom").versionRef("slf4jBOM")
+            library("logback-classic", "ch.qos.logback", "logback-classic").versionRef("logback")
+            library("kotlin-logging", "io.github.oshai", "kotlin-logging").versionRef("logging")
+            library("kotlin-logging-jvm", "io.github.oshai", "kotlin-logging-jvm").versionRef("logging")
+
         }
 
     }
