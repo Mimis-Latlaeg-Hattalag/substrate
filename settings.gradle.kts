@@ -1,5 +1,3 @@
-import org.gradle.kotlin.dsl.internal.relocated.kotlin.metadata.internal.metadata.deserialization.VersionRequirementTable.Companion.create
-
 pluginManagement {
 
     val versionOfToolchainsFoojayResolver: String by extra
@@ -60,9 +58,7 @@ dependencyResolutionManagement {
             library("kotlin-logging-jvm", "io.github.oshai", "kotlin-logging-jvm").versionRef("logging")
 
         }
-
     }
-
 }
 
 rootProject.name = "substrate"
