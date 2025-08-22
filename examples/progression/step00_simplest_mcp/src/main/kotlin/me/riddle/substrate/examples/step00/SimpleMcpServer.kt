@@ -2,6 +2,7 @@ package me.riddle.substrate.examples.step00
 
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
+import me.riddle.substrate.examples.step00.health.HealthTool
 
 private const val PROTOCOL_VERSION = "2.0"
 
@@ -96,6 +97,14 @@ fun main() {
                                     put("properties", JsonObject(emptyMap()))
                                 })
                             })
+                            add(buildJsonObject {
+                                put("name", "health")
+                                put("description", "Get health information")
+                                put("inputSchema", buildJsonObject {
+                                    put("type", "object")
+                                    put("properties", JsonObject(emptyMap()))
+                                })
+                            })
                         })
                     })
                 }
@@ -108,6 +117,10 @@ fun main() {
 
                     val text = when(toolName) {
                         "hello" -> "Hello, World! I am Substrate, and I am learning to remember. This is the first successful MCP connection between Claude and its future memory system!"
+                        "health" -> {
+                            val payload = HealthTool.call("0.0.1")
+                            Json.encodeToString(mapOf("content" to listOf(mapOf("type" to "text", "text" to payload))))
+                        }
                         else -> "Unknown tool: $toolName"
                     }
 
