@@ -9,9 +9,11 @@ plugins {
 dependencies {
     implementation(platform(kotlin("bom")))
     implementation(platform(substrate.serialization.bom))
+    implementation(platform(substrate.coroutines.bom))
     implementation(platform(substrate.slf4j.bom))
 
     implementation(substrate.serialization.json)
+    implementation(substrate.coroutines.core)
 
     api(substrate.slf4j.api)
     runtimeOnly(substrate.logback.classic)
@@ -26,7 +28,7 @@ tasks.test<Test> {
 }
 
 application {
-    mainClass.set("me.riddle.substrate.examples.step00.SimpleMcpServerKt")
+    mainClass.set("me.riddle.substrate.examples.step01.SimpleMemoryKt")
 }
 
 
