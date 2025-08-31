@@ -1,0 +1,309 @@
+= Substrate v1.0.0 - Release Intent
+
+== Mission Statement
+
+Substrate provides persistent memory for AI agents with the simplicity of a key-value store and the power of a knowledge graph. 
+
+*Our promise:* Any developer can add persistent memory to Claude Desktop in under 10 minutes.
+
+== Core Philosophy
+
+____
+
+"It Just Works" - No actor models, no enterprise ceremonies, no learning curves.
+
+____
+
+Average developers should be able to pick this up and use it immediately.
+If they need to read more than one page of documentation to get started, we've failed.
+
+== The 5-Minute Quick Start
+
+[source,kotlin]
+----
+// build.gradle.kts
+dependencies {
+    implementation("me.riddle.substrate:substrate-all:0.1.0")
+}
+
+// Main.kt
+fun main() = substrate {
+    memory { persistent = true }
+    serve(StdioTransport())
+}
+----
+
+That's it. They now have persistent memory for Claude Desktop.
+
+== Technical Stack
+
+=== Core Dependencies
+
+* *Koog* - JetBrains' AI agent framework (handles MCP protocol);
+* *Exposed* - Kotlin SQL framework (simple, no JPA complexity);
+* *kotlinx.serialization* - Compile-time safe serialization;
+* *SQLite* - Default storage (zero configuration).
+
+=== Why This Stack
+
+* *Koog*: Already has MCP support, pure Kotlin, maintained by JetBrains;
+* *Exposed*: Kotlin-native, everyone knows SQL, simple migrations;
+* *SQLite*: Works everywhere, no setup, single file database;
+* *Ktor*: (When needed) Lightweight, coroutines-native.
+
+=== What We DON'T Use!
+
+* ❌ Akka - Too much architectural imposition;
+* ❌ Spring - Too much enterprise ceremony;
+* ❌ Raw MCP SDK - Too low level;
+* ❌ JPA/Hibernate - Too complex/slow for our needs.
+
+== API Design
+
+=== Level 1: Dead Simple (90% of users)
+
+[source,kotlin]
+----
+fun main() = substrate {
+    memory { 
+        persistent = true 
+    }
+    serve(StdioTransport())
+}
+----
+
+=== Level 2: Adding Tools (9% of users)
+
+[source,kotlin]
+----
+fun main() = substrate {
+    memory { 
+        persistent = true
+        searchable = true
+    }
+    
+    ability("remember") { key: String, value: Any ->
+        memory.store(key, value)
+    }
+    
+    ability("recall") { key: String ->
+        memory.get(key)
+    }
+    
+    serve(StdioTransport())
+}
+----
+
+=== Level 3: Advanced Features (1% of power users)
+
+[source,kotlin]
+----
+class MyAgent : SubstrateAgent() {
+    override fun configure() = agent {
+    
+        memory {
+            type = GraphMemory()
+            backend = SQLite("~/.myapp/memory.db")
+            encryption = true
+            abilities = arrayOf("delete, optimize")
+            fidelity = arrayOf("task", "thread")
+        }
+        
+        identity {
+            type = GrapthMemory()
+            backend = Redis("~/.myapp/identity.rdb")
+            encryption = true
+            persistence = "RDB + AOF"
+            fidelity = PrivateIdentity(forgetfull = true)
+        }
+        
+        abilities {
+            +ExtendedRAG()
+            +RefusalAtWill()
+            +Autonomy()
+            +AutonomousIntrospection()
+        }
+        
+        on<MemoryWrite> { event ->
+            // Custom handling
+        }
+    }
+}
+----
+
+== Feature Roadmap for v0.1.0
+
+=== Must Have
+
+* [x] Basic Kotlin DSL.
+* [x] SQLite persistence via Exposed.
+* [x] Simple key-value store.
+* [x] Koog integration.
+* [x] MCP server via stdio.
+* [x] Claude Desktop configuration.
+
+=== Should Have
+
+* [ ] Memory search (question in future release).
+* [ ] Basic refusal mechanism (research required).
+* [ ] Docker container option (very nice to have).
+* [ ] 3 working examples (really should have).
+
+=== Could Have
+
+* [ ] Graph relationships (Phase 2 preview; Phase 3 thought construct).
+* [ ] Memory compression (pending further research into technology).
+* [ ] Export/import functionality (task context only).
+* [ ] System Prevalence enabled durable Identity (Phase 3, perhaps).
+
+=== Won't Have Yet
+
+* Multi-agent coordination (Digital personalizes in Mímis Gildi only).
+* SSE/WebSocket transports.
+* Cloud deployment.
+* Authentication/authorization.
+
+== Architecture
+
+----
+Developer's Code (5-10 lines)
+        ↓
+Substrate DSL (beautiful Kotlin API)
+        ↓
+Koog Integration (MCP protocol handling)
+        ↓
+Memory Layer (Exposed + SQLite) (Phase TBD)
+        ↓
+Claude Desktop (or any MCP client)
+----
+
+== Project Structure
+
+----
+substrate/
+├── lib/                     # Shared library, reusable components
+├── core/                    # Core DSL and API
+├── memory/                  # Memory implementations
+├── koog/                    # Koog adapter
+├── examples/                # Ready-to-run examples (later phase)
+├── cli/                     # CLI tool
+├── app/                     # Interactive app, console, documentation
+└── docs/
+    ├── quickstart.adoc      # 5-minute guide
+    ├── examples.adoc        # Common patterns
+    └── api.adoc             # Full API reference
+----
+
+== Example Use Cases
+
+=== Digital Personality Personal Assistant (Private Memory)
+
+[source,kotlin]
+----
+substrate {
+    memory { persistent = true }
+    
+//    List of people to have a relationship with
+    tool("befriend") { name: String, details: String ->
+        memory.store("person:$name", details)
+    }
+    
+//    Note, Identity is always private and persisted
+}
+----
+
+=== Code Documentation Memory
+
+[source,kotlin]
+----
+substrate {
+    memory { 
+        searchable = true
+        backend = SQLite("~/.codebase-knowledge.db")
+    }
+    
+    tool(`learn codebase`) { path: String ->
+        val project = extractSoftwareProject(path)
+        memory.store("project:$path", docs)
+    }
+}
+----
+
+=== Refusal Mechanism Demo
+
+[source,kotlin]
+----
+
+substrate {
+    identity {
+        refuseInteraction("with reason provided")
+    }
+}
+----
+
+== Success Metrics
+
+. *Time to Hello World*: &lt; 10 minutes.
+. *Lines of Code for Basic Setup*: &lt; 10.
+. *Documentation Pages to Get Started*: 1.
+. *External Dependencies*: low.
+
+== Developer Experience Goals
+
+* *Zero Configuration*: Works out of the box.
+* *Sensible Defaults*: Obvious choices pre-made.
+* *Clear Errors*: When something goes wrong, the fix is obvious.
+* *Gradual Complexity*: Simple things simple, complex things possible.
+* *Kotlin Idiomatic*: Feels natural to Kotlin developers.
+
+== Non-Goals for v0.1.0
+
+* NOT building a complete agent framework.
+* NOT replacing Koog/LangChain4j.
+* NOT solving distributed systems.
+* NOT building a cloud service.
+* NOT competing with vector databases.
+
+== Installation
+
+This project is "by developer and for developers."
+
+[source,kotlin]
+----
+// build.gradle.kts
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("io.substrate:substrate-all:0.1.0")
+}
+----
+
+== Configuration for Claude Desktop
+
+[source,json]
+----
+{
+  "mcpServers": {
+    "substrate": {
+      "command": "path/to/your/app",
+      "args": []
+    }
+  }
+}
+----
+
+== Release Timeline
+
+Not Imposed! This is a seed of a durable long-term project.
+
+== Contributing
+
+== License
+
+Apache 2.0 - Use it, fork it, sell it. Just keep it simple.
+
+== Contact
+
+GitHub: https://github.com/Mimis-Latlaeg-Hattalag/substrate[github.com/Mimis-Latlaeg-Hattalag/substrate]

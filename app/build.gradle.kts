@@ -1,5 +1,7 @@
 plugins {
-    id("kotlin-application-conventions")
+    kotlin("jvm")
+    kotlin("plugin.serialization")
+    application
 }
 
 dependencies {

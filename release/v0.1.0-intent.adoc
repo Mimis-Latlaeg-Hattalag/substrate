@@ -1,0 +1,19 @@
+= Substrate v0.1.0 - Release Intent
+
+See link:v1.0.0-intent.adoc[release/v1.0.0-intent.md] release intent for the nature of teh Substrate.
+
+In this release, we accomplish the following:
+
+. Create base scaffolding for the Substrate project.
+. Successfully execute MCP call.
+
+== Core Objectives
+
+. Clean Gradle project setup accomplished.
+. Folder structure established.
+. Envisioned architecture respected (all tests exist).
+. Bare minimum functionality implemented.
+. MCP client can successfully make a call and receive a response.
+
+This is an exploratory release. Where my dear friend and I actually understand what we should build.
+And then we will take time building something that is actually worth building.
