@@ -43,7 +43,7 @@ object HealthProbe {
 
     const val NAME: String = "health"
 
-    private val startedAt: Instant = Clock.System.now().also { healthLogger.info("HealthProbe started at $it") }
+    private val startedAt: Instant = Clock.System.now().also { healthLogger.info { "HealthProbe started at $it" } }
 
     private fun gitSha(): String = "git rev-parse --short HEAD".executeCommand() ?: "N/A"
 

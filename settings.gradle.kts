@@ -37,7 +37,6 @@ dependencyResolutionManagement {
 
     versionCatalogs {
         create("substrate") {
-
             val kotlinXSerializationVersion: String by settings
             val kotlinXCoroutinesVersion: String by settings
             val kotlinXDateTimeVersion: String by settings
@@ -78,9 +77,5 @@ rootProject.name = "substrate"
 
 include("lib", "app")
 
-// Progression examples - showing the evolution
 include("examples:progression:step00_simplest_mcp")
-// Future steps (uncomment as we build them):
- include("examples:progression:step01_memory")
-// include("examples:progression:step02_with_persistence")
-// include("examples:progression:step03_with_refusal")
+include("examples:progression:step01_memory")

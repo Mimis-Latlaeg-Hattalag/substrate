@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="SimpleMcpServerKt" type="JetRunConfigurationType" focusToolWindowBeforeRun="true" nameIsGenerated="true" show_console_on_std_out="true">
+    <output_file path="$USER_HOME$/tmp/log/Step00.log" is_save="true" />
+    <option name="MAIN_CLASS_NAME" value="me.riddle.substrate.examples.step00.SimpleMcpServerKt" />
+    <module name="substrate.examples.progression.step00_simplest_mcp.main" />
+    <shortenClasspath name="NONE" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

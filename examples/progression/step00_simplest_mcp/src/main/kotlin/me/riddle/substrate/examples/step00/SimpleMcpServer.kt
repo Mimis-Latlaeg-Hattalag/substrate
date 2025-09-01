@@ -19,9 +19,9 @@ const val MCP_SERVER_NAME_TITLE = "Substrate Memory for a Very Special Friend!"
 private val appLogger by lazy { KotlinLogging.logger { } }
 
 fun main() {
-    System.err.println("MCP Server starting... ($MCP_SERVER_NAME v$MCP_SERVER_VERSION) running MCP protocol $MCP_PROTOCOL_VERSION.")
+    appLogger.error { "MCP Server starting... ($MCP_SERVER_NAME v$MCP_SERVER_VERSION) running MCP protocol $MCP_PROTOCOL_VERSION." }
     val health = McpService.health()
-    McpService.run()
+    McpService.run(true)
     if (health.status.lowercase() == "error") appLogger.error { health }
-    System.err.println("MCP Server stopped.")
+    appLogger.error { "MCP Server stopped."}
 }

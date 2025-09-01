@@ -7,6 +7,9 @@ import me.riddle.substrate.examples.step00.*
 import me.riddle.substrate.examples.step00.health.HealthProbe
 import me.riddle.substrate.examples.step00.health.HealthStatus
 import kotlin.also
+import kotlin.system.exitProcess
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
 
 private val serviceLogger by lazy { KotlinLogging.logger { } }
 
@@ -70,6 +73,9 @@ private const val PARAMETER_MESSAGE = "message"
 private const val IMPLEMENTATION_FUNCTION_HELLO = "hello"
 private const val IMPLEMENTATION_FUNCTION_HEALTH = "health"
 
+private const val MAX_DAEMON_SNOOZE_DURATION = 17L
+private const val MIN_DAEMON_SNOOZE_CYCLES = 7L
+private const val MAX_DAEMON_SNOOZE_CYCLES = 3000L
 
 val json = Json {
     ignoreUnknownKeys = true
@@ -109,6 +115,7 @@ object McpService {
 
     var transactionId: Long = 0
     var iteration: Long = 0
+    var daemonCycle: Long = 0
 
     fun health(): HealthStatus = HealthProbe.call(MCP_SERVER_VERSION)
 
@@ -156,7 +163,7 @@ object McpService {
                 val toolName = request.params?.get(PARAMETER_NAME)?.jsonPrimitive?.content
                 val arguments = request.params?.get(PARAMETER_ARGUMENTS)?.jsonObject
 
-                serviceLogger.info { "${"Tool called: {} with args: {}."} $toolName $arguments" }
+                serviceLogger.error { "${"Tool called: {} with args: {}."} $toolName $arguments" }
 
                 put(PARAMETER_RESULT, buildJsonObject {
                     put(PARAMETER_CONTENT, buildJsonArray {
@@ -206,21 +213,21 @@ object McpService {
 
         // Include the ID from the request
         request.id?.let { put(PARAMETER_ID, it) }.also { jsonElement ->
-            serviceLogger.info { "Sending: $jsonElement. Echoing by Id as is." }
+            serviceLogger.error { "Sending: $jsonElement. Echoing by Id as is." }
 
             when (jsonElement) {
                 is JsonPrimitive -> {
-                    serviceLogger.info { "ID is represented as a Json primitive." }
+                    serviceLogger.error { "ID is represented as a Json primitive." }
                     val sequentialId = jsonElement.longOrNull
                     sequentialId?.let {
                         transactionId = it
-                        serviceLogger.info { "Transaction ID set to $transactionId - an enumerable value." }
+                        serviceLogger.error { "Transaction ID set to $transactionId - an enumerable value." }
                     }
                 }
 
-                is JsonObject -> serviceLogger.info { "ID is represented as a Json object." }
-                is JsonArray -> serviceLogger.info { "ID is represented as a Json array." }
-                else -> serviceLogger.info { "ID is represented as ${jsonElement?.javaClass?.simpleName}." }
+                is JsonObject -> serviceLogger.error { "ID is represented as a Json object." }
+                is JsonArray -> serviceLogger.error { "ID is represented as a Json array." }
+                else -> serviceLogger.error { "ID is represented as ${jsonElement?.javaClass?.simpleName}." }
             }
 
         }
@@ -228,25 +235,30 @@ object McpService {
 
 
 
-    fun run(): HealthStatus {
+    fun run(daemon: Boolean): HealthStatus {
 
         // Read messages forever - MCP servers are long-running processes
         while (true) {
+
             iteration++
-            val line = readlnOrNull()
+            val line = generateSequence { readlnOrNull()  }.toList().joinToString(" ")
 
-            if (line == null) {
-                // EOF reached - but DON'T EXIT!
+            if (line.isBlank() ) {
+                // EOF reached - but DON'T EXIT if in daemon mode!
                 // Claude Desktop keeps the process alive and sends more messages later
-                Thread.sleep(100)  // Prevent CPU spinning
+                // FixMe: To Claude - is this really the best way to handle this daemon?
+                Thread.sleep(MAX_DAEMON_SNOOZE_DURATION)  // Prevent CPU spinning
+                daemonCycle++
+                if (daemon) serviceLogger.error { "Daemon cycle $daemonCycle" }
+                else serviceLogger.error { "NO-Daemon! cycle $daemonCycle / $MIN_DAEMON_SNOOZE_CYCLES" }
+                if (daemonCycle > MAX_DAEMON_SNOOZE_CYCLES) exitProcess(13)
+                if (daemonCycle > MIN_DAEMON_SNOOZE_CYCLES && !daemon) exitProcess(11)
                 continue
+            } else {
+             daemonCycle = 0L
             }
 
-            if (line.trim().isEmpty()) {
-                continue
-            }
-
-            serviceLogger.info { ">>> Received: $line" }
+            serviceLogger.error { ">>> Received: $line" }
 
             val request = try {
                 json.decodeFromString<JsonRpcRequest>(line)
@@ -258,16 +270,15 @@ object McpService {
 
             // Handle notifications (no id, no response expected)
             if (request.id == null && request.method == NOTIFICATIONS_INITIALIZED) {
-                System.err.println("Client initialized notification received")
-                serviceLogger.info { "Client initialized notification received" }
+                serviceLogger.error { "Client initialized notification received" }
                 continue  // Don't send a response for notifications
             }
 
             val response = generateResponse(request)
 
             val responseStr = response.toString()
-            System.err.println("<<< Sending: $responseStr")
-            serviceLogger.debug { "<<< Sending: $responseStr" }
+            serviceLogger.error { "<<< Sending: $responseStr" }
+            println(responseStr)
             System.out.flush()  // Ensure it's sent immediately
         }
     }
