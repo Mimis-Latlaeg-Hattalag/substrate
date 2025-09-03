@@ -1,14 +1,18 @@
 package me.riddle.substrate.examples.step00
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.serialization.json.Json
 import me.riddle.substrate.examples.step00.service.McpService
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
-import kotlin.emptyArray
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.test.fail
 
 
 const val MCP_INITIALIZE_CONTENT = """
@@ -50,6 +54,7 @@ const val MCP_INITIALIZE_RESPONSE = """
 class SimpleMcpServerMainTest {
 
     private val mainTestLogger by lazy { KotlinLogging.logger { } }
+    private val json = Json { ignoreUnknownKeys = true }
 
     private val testCapture = ByteArrayOutputStream()
     private val testOut = ByteArrayOutputStream()
@@ -73,12 +78,26 @@ class SimpleMcpServerMainTest {
     }
 
     @Test
-    fun `Validate initialize response`() {
-        System.setIn(ByteArrayInputStream(MCP_INITIALIZE_CONTENT.toByteArray()))
-        McpService.run(false)
-        val result = testOut.toString()
+    fun `server starts and stops cleanly on EOF`() {
+        // Simulate empty input (immediate EOF)
+        val emptyInput = ByteArrayInputStream(ByteArray(0))
 
-        mainTestLogger.info { result }
+        System.setIn(emptyInput)
+        System.setOut(PrintStream(testOut))
+        System.setErr(PrintStream(testErr))
+
+        // Server should exit cleanly, not hang
+        val future = Executors.newSingleThreadExecutor().submit {
+            McpService.run(false) // daemon=false
+        }
+
+        try {
+            future.get(2, TimeUnit.MINUTES) // Should complete quickly
+        } catch (e: TimeoutException) {
+            fail("Server did not exit cleanly on EOF - hanging instead", e)
+        }
+
+        mainTestLogger.info { "Server exited cleanly on EOF" }
     }
 
 }

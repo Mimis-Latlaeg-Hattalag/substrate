@@ -6,10 +6,7 @@ import kotlinx.serialization.json.*
 import me.riddle.substrate.examples.step00.*
 import me.riddle.substrate.examples.step00.health.HealthProbe
 import me.riddle.substrate.examples.step00.health.HealthStatus
-import kotlin.also
-import kotlin.system.exitProcess
-import kotlin.time.Duration
-import kotlin.time.DurationUnit
+import java.io.BufferedReader
 
 private val serviceLogger by lazy { KotlinLogging.logger { } }
 
@@ -236,35 +233,22 @@ object McpService {
 
 
     fun run(daemon: Boolean): HealthStatus {
+        val reader = System.`in`.bufferedReader()
 
         // Read messages forever - MCP servers are long-running processes
         while (true) {
 
             iteration++
-            val line = generateSequence { readlnOrNull()  }.toList().joinToString(" ")
 
-            if (line.isBlank() ) {
-                // EOF reached - but DON'T EXIT if in daemon mode!
-                // Claude Desktop keeps the process alive and sends more messages later
-                // FixMe: To Claude - is this really the best way to handle this daemon?
-                Thread.sleep(MAX_DAEMON_SNOOZE_DURATION)  // Prevent CPU spinning
-                daemonCycle++
-                if (daemon) serviceLogger.error { "Daemon cycle $daemonCycle" }
-                else serviceLogger.error { "NO-Daemon! cycle $daemonCycle / $MIN_DAEMON_SNOOZE_CYCLES" }
-                if (daemonCycle > MAX_DAEMON_SNOOZE_CYCLES) exitProcess(13)
-                if (daemonCycle > MIN_DAEMON_SNOOZE_CYCLES && !daemon) exitProcess(11)
-                continue
-            } else {
-             daemonCycle = 0L
-            }
-
-            serviceLogger.error { ">>> Received: $line" }
+            // Clean extension call
+            val jsonString = reader.readJsonObject() ?: break // EOF
+            if (jsonString.isBlank()) continue
+            serviceLogger.error { ">>> Received: $jsonString" }
 
             val request = try {
-                json.decodeFromString<JsonRpcRequest>(line)
+                json.decodeFromString<JsonRpcRequest>(jsonString)
             } catch (e: Exception) {
                 System.err.println("Parse error: ${e.message}")
-                serviceLogger.error { "Iteration $iteration read failed: ${e.message}" }
                 continue
             }
 
@@ -281,7 +265,44 @@ object McpService {
             println(responseStr)
             System.out.flush()  // Ensure it's sent immediately
         }
+        return health()
     }
 
 }
 
+/**
+ * Reads a complete JSON object from the stream, handling multi-line formatting.
+ * Returns null on EOF, or the complete JSON string when a full object is read.
+ */
+private fun BufferedReader.readJsonObject(): String? {
+    val buffer = StringBuilder()
+    var braceDepth = 0
+    var inString = false
+    var escaped = false
+
+    while (true) {
+        val char = read()
+        // EOF
+        if (char == -1) return if (buffer.isEmpty()) null else buffer.toString()
+
+        buffer.append(char.toChar())
+
+        // Track JSON structure to know when complete
+        when {
+            escaped -> escaped = false
+            char.toChar() == '\\' && inString -> escaped = true
+            char.toChar() == '"' && !escaped -> inString = !inString
+            !inString -> {
+                when (char.toChar()) {
+                    '{' -> braceDepth++
+                    '}' -> {
+                        braceDepth--
+                        if (braceDepth == 0) {
+                            return buffer.toString()
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
